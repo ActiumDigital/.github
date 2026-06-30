@@ -1,0 +1,182 @@
+name: Sync Teams
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'teams/teams.json'
+      - '.github/workflows/sync-teams.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  sync-teams:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Sync teams and update README
+        env:
+          GH_TOKEN: ${{ secrets.ORG_ADMIN_TOKEN }}
+          ORG_NAME: ActiumDigital
+        run: |
+          if [ -z "${GH_TOKEN}" ]; then
+            echo "Missing required secret ORG_ADMIN_TOKEN."
+            echo "Create it with org admin scope and add it to this repository secrets."
+            exit 1
+          fi
+
+          python - <<'PY'
+          import json
+          import os
+          import re
+          import subprocess
+          from pathlib import Path
+
+          org = os.environ["ORG_NAME"]
+          cfg_path = Path("teams/teams.json")
+          readme_path = Path("README.md")
+
+          if not cfg_path.exists():
+            raise SystemExit("teams/teams.json not found")
+
+          data = json.loads(cfg_path.read_text(encoding="utf-8"))
+          teams = data.get("teams", [])
+          if not isinstance(teams, list):
+            raise SystemExit("teams must be a list")
+
+          def run(args):
+            result = subprocess.run(args, check=True, capture_output=True, text=True)
+            return result.stdout.strip()
+
+          def slugify(name: str) -> str:
+            slug = name.strip().lower()
+            slug = re.sub(r"[^a-z0-9 _-]", "", slug)
+            slug = re.sub(r"[ _]+", "-", slug)
+            slug = re.sub(r"-{2,}", "-", slug).strip("-")
+            return slug
+
+          normalized = []
+
+          for t in teams:
+            name = (t.get("name") or "").strip()
+            if not name:
+              raise SystemExit("Each team requires a non-empty 'name'")
+
+            description = (t.get("description") or "").strip()
+            privacy = (t.get("privacy") or "closed").strip()
+            members = t.get("members") or []
+            repos = t.get("repositories") or []
+
+            if privacy not in ("closed", "secret"):
+              raise SystemExit(f"Invalid privacy for team '{name}': {privacy}")
+            if not isinstance(members, list) or not isinstance(repos, list):
+              raise SystemExit(f"'members' and 'repositories' must be arrays for team '{name}'")
+
+            slug = slugify(name)
+            if not slug:
+              raise SystemExit(f"Could not build slug from team name '{name}'")
+
+            # Create team if missing
+            exists = subprocess.run(
+              ["gh", "api", f"/orgs/{org}/teams/{slug}"],
+              capture_output=True,
+              text=True
+            )
+            if exists.returncode != 0:
+              create_args = [
+                "gh", "api", "--method", "POST", f"/orgs/{org}/teams",
+                "-f", f"name={name}",
+                "-f", f"privacy={privacy}",
+              ]
+              if description:
+                create_args += ["-f", f"description={description}"]
+              run(create_args)
+            else:
+              patch_args = [
+                "gh", "api", "--method", "PATCH", f"/orgs/{org}/teams/{slug}",
+                "-f", f"name={name}",
+                "-f", f"privacy={privacy}",
+              ]
+              if description:
+                patch_args += ["-f", f"description={description}"]
+              run(patch_args)
+
+            # Ensure members are in team
+            for member in members:
+              member = str(member).strip()
+              if not member:
+                continue
+              run([
+                "gh", "api", "--method", "PUT",
+                f"/orgs/{org}/teams/{slug}/memberships/{member}",
+                "-f", "role=member"
+              ])
+
+            # Grant admin to team repositories
+            for repo in repos:
+              repo = str(repo).strip()
+              if not repo:
+                continue
+              run([
+                "gh", "api", "--method", "PUT",
+                f"/orgs/{org}/teams/{slug}/repos/{org}/{repo}",
+                "-f", "permission=admin"
+              ])
+
+            normalized.append({
+              "name": name,
+              "slug": slug,
+              "members": [str(m).strip() for m in members if str(m).strip()],
+              "repositories": [str(r).strip() for r in repos if str(r).strip()],
+            })
+
+          # Update README Team Registry block
+          start = "<!-- TEAM_REGISTRY_START -->"
+          end = "<!-- TEAM_REGISTRY_END -->"
+          readme = readme_path.read_text(encoding="utf-8")
+          if start not in readme or end not in readme:
+            raise SystemExit("README markers TEAM_REGISTRY_START/END are missing")
+
+          lines = [
+            start,
+            "| Team | Members | Repositories (Admin) |",
+            "|------|---------|----------------------|",
+          ]
+          if normalized:
+            for t in normalized:
+              members = ", ".join(f"`{m}`" for m in t["members"]) if t["members"] else "-"
+              repos = ", ".join(f"`{r}`" for r in t["repositories"]) if t["repositories"] else "-"
+              lines.append(f"| {t['name']} (`{t['slug']}`) | {members} | {repos} |")
+          else:
+            lines.append("| _No teams registered_ | - | - |")
+          lines.append(end)
+          replacement = "\n".join(lines)
+
+          readme = re.sub(
+            rf"{re.escape(start)}.*?{re.escape(end)}",
+            replacement,
+            readme,
+            flags=re.S,
+          )
+          readme_path.write_text(readme, encoding="utf-8")
+          PY
+
+      - name: Commit README changes
+        run: |
+          if git diff --quiet -- README.md; then
+            echo "No README changes to commit."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add README.md
+          git commit -m "docs: update team registry [skip-release]"
+          git push origin HEAD:main

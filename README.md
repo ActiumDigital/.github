@@ -41,6 +41,54 @@ Automatically updates `CHANGELOG.md` when a release is created.
 - Maintains release history
 - Updates automatically on every release
 
+#### 👥 Team Sync Workflow (`sync-teams.yml`)
+Manages organization teams from code and keeps this README updated.
+
+**Source of truth:**
+- `teams/teams.json`
+
+**How it works:**
+1. Add or update a team entry in `teams/teams.json`
+2. Push to `main`
+3. Workflow creates/updates the GitHub team
+4. Users in `members` are added to the team
+5. Repositories in `repositories` are assigned with **admin** permission for that team
+6. This README Team Registry section is auto-updated
+
+**Config properties per team:**
+- `name`: team name (required)
+- `description`: team description (optional)
+- `privacy`: `closed` or `secret` (optional, defaults to `closed`)
+- `members`: GitHub usernames to add to the team (optional)
+- `repositories`: repository names in ActiumDigital org to grant admin permission (optional)
+
+**Required secret:**
+- `ORG_ADMIN_TOKEN`: Personal Access Token with org admin rights (used by workflow to manage teams and repo permissions)
+
+**Example (`teams/teams.json`):**
+```json
+{
+  "teams": [
+    {
+      "name": "Data Platform",
+      "description": "Owns data services and pipelines",
+      "privacy": "closed",
+      "members": ["alice", "bob"],
+      "repositories": ["data-api", "etl-jobs"]
+    }
+  ]
+}
+```
+
+---
+
+## 👥 Team Registry (Auto-generated)
+This section is maintained automatically from `teams/teams.json`.
+
+<!-- TEAM_REGISTRY_START -->
+_No teams registered yet._
+<!-- TEAM_REGISTRY_END -->
+
 ---
 
 ## 📖 Using Conventional Commits
