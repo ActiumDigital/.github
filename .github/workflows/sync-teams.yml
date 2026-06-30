@@ -147,7 +147,7 @@ jobs:
 
               run(["gh", "api", "--method", "PUT",
                 f"/orgs/{org}/teams/{slug}/repos/{org}/{repo}",
-                "-f", "permission=admin"])
+                "-f", "permission=maintain"])
 
             normalized.append({
               "client": client,
@@ -203,6 +203,7 @@ jobs:
           git commit -m "docs: update client mapping from teams config [skip-release]"
           git pull --rebase origin main
           git push origin HEAD:main
+
 
 
 
