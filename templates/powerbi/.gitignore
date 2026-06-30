@@ -1,0 +1,112 @@
+# ============================================================================
+# Power BI Specific
+# ============================================================================
+
+# Power BI cache and local settings
+**/.pbi/
+**/cache.abf
+**/localSettings.json
+*.pbip.user
+*.pbip.models.json
+
+# Power BI Desktop temporary files
+**/AnalysisServicesWorkspaces/
+**/.powerbi/
+*.pbitmp
+*.tmp
+
+# Power BI exports and backups
+*.pbix.bak
+*.pbit.bak
+*.pbip.bak
+*.zip
+
+# Credential/connection files
+**/Credentials/
+**/connections.json
+**/config.local.json
+*.credentials
+
+# Power BI service exports
+**/exports/
+**/backups/
+
+# ============================================================================
+# Development & Environment
+# ============================================================================
+
+.env
+.env.local
+.env.*.local
+.env.prod
+
+venv/
+env/
+ENV/
+.venv
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+dist/
+build/
+
+node_modules/
+npm-debug.log
+yarn-error.log
+package-lock.json
+yarn.lock
+
+# ============================================================================
+# IDE & Editor
+# ============================================================================
+
+.vscode/
+*.code-workspace
+.idea/
+*.iml
+.vs/
+bin/
+obj/
+*.user
+*.suo
+*.sublime-project
+.atom/
+*.swp
+*~
+
+# ============================================================================
+# OS Files
+# ============================================================================
+
+.DS_Store
+Thumbs.db
+desktop.ini
+$RECYCLE.BIN/
+
+# ============================================================================
+# Build & Data
+# ============================================================================
+
+*.bim
+*.bim.json
+*.log
+
+*.csv
+*.xlsx
+*.xls
+*.parquet
+*.json.gz
+*.mdf
+*.ldf
+
+# ============================================================================
+# Development Resources
+# ============================================================================
+
+data/raw/
+data/temp/
+reports/exports/
+reports/archives/
+secrets/
+private/

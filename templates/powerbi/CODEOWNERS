@@ -1,0 +1,20 @@
+# Code Owners for Power BI Projects
+
+# Power BI model - requires lead approval
+*.pbix @data-team-lead @analytics-lead
+*.pbit @data-team-lead
+
+# Credentials and sensitive config
+.env* @data-owner
+**/credentials* @data-owner
+**/connections.json @data-owner
+
+# Documentation - team review
+*.md @data-team-lead
+docs/** @data-team-lead
+
+# Data scripts - code review
+scripts/** @data-engineer @analytics-lead
+
+# Configuration - data owner approval
+config/** @data-owner
