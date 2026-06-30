@@ -170,6 +170,34 @@
         "actiumbi-actiumdigital",
         "cpujol-actiumdigital"
       ]
+    },
+    {
+      "client": "ELECTRODINAMIC",
+      "name": "ELECTRODINAMIC",
+      "alias": "Electrodinamic",
+      "tool": "PBI",
+      "description": "Electrodinamic apps en Power BI",
+      "privacy": "closed",
+      "members": [
+        "mrebocho-actiumdigital",
+        "fgonzalez-actiumdigital",
+        "actiumbi-actiumdigital",
+        "cpujol-actiumdigital"
+      ]
+    },
+    {
+      "client": "ROLLER",
+      "name": "ROLLER",
+      "alias": "Roller",
+      "tool": "PBI",
+      "description": "Roller apps en Power BI",
+      "privacy": "closed",
+      "members": [
+        "mrebocho-actiumdigital",
+        "fgonzalez-actiumdigital",
+        "actiumbi-actiumdigital",
+        "cpujol-actiumdigital"
+      ]
     }
   ]
 }
