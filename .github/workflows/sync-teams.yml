@@ -17,10 +17,18 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
+      - name: Checkout .github repo
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          path: .github-repo
+
+      - name: Checkout .github-private repo
+        uses: actions/checkout@v4
+        with:
+          repository: ActiumDigital/.github-private
+          token: ${{ secrets.ORG_ADMIN_TOKEN }}
+          path: .github-private-repo
 
       - name: Sync teams and update README
         env:
@@ -29,7 +37,6 @@ jobs:
         run: |
           if [ -z "${GH_TOKEN}" ]; then
             echo "Missing required secret ORG_ADMIN_TOKEN."
-            echo "Create it with org admin scope and add it to this repository secrets."
             exit 1
           fi
 
@@ -41,16 +48,16 @@ jobs:
           from pathlib import Path
 
           org = os.environ["ORG_NAME"]
-          cfg_path = Path("teams/teams.json")
-          readme_path = Path("README.md")
+          cfg_path = Path(".github-repo/teams/teams.json")
+          readme_path = Path(".github-private-repo/profile/README.md")
 
           if not cfg_path.exists():
             raise SystemExit("teams/teams.json not found")
+          if not readme_path.exists():
+            raise SystemExit("profile/README.md not found in .github-private")
 
           data = json.loads(cfg_path.read_text(encoding="utf-8"))
           teams = data.get("teams", [])
-          if not isinstance(teams, list):
-            raise SystemExit("teams must be a list")
 
           def run(args):
             result = subprocess.run(args, check=True, capture_output=True, text=True)
@@ -68,7 +75,7 @@ jobs:
           for t in teams:
             name = (t.get("name") or "").strip()
             if not name:
-              raise SystemExit("Each team requires a non-empty 'name'")
+              raise SystemExit("Each team requires a non-empty name")
 
             description = (t.get("description") or "").strip()
             privacy = (t.get("privacy") or "closed").strip()
@@ -76,80 +83,55 @@ jobs:
             repos = t.get("repositories") or []
 
             if privacy not in ("closed", "secret"):
-              raise SystemExit(f"Invalid privacy for team '{name}': {privacy}")
-            if not isinstance(members, list) or not isinstance(repos, list):
-              raise SystemExit(f"'members' and 'repositories' must be arrays for team '{name}'")
+              raise SystemExit(f"Invalid privacy for team {name}")
 
             slug = slugify(name)
-            if not slug:
-              raise SystemExit(f"Could not build slug from team name '{name}'")
 
-            # Create team if missing
             exists = subprocess.run(
               ["gh", "api", f"/orgs/{org}/teams/{slug}"],
-              capture_output=True,
-              text=True
+              capture_output=True, text=True
             )
             if exists.returncode != 0:
-              create_args = [
-                "gh", "api", "--method", "POST", f"/orgs/{org}/teams",
-                "-f", f"name={name}",
-                "-f", f"privacy={privacy}",
-              ]
+              args = ["gh", "api", "--method", "POST", f"/orgs/{org}/teams",
+                "-f", f"name={name}", "-f", f"privacy={privacy}"]
               if description:
-                create_args += ["-f", f"description={description}"]
-              run(create_args)
+                args += ["-f", f"description={description}"]
+              run(args)
             else:
-              patch_args = [
-                "gh", "api", "--method", "PATCH", f"/orgs/{org}/teams/{slug}",
-                "-f", f"name={name}",
-                "-f", f"privacy={privacy}",
-              ]
+              args = ["gh", "api", "--method", "PATCH", f"/orgs/{org}/teams/{slug}",
+                "-f", f"name={name}", "-f", f"privacy={privacy}"]
               if description:
-                patch_args += ["-f", f"description={description}"]
-              run(patch_args)
+                args += ["-f", f"description={description}"]
+              run(args)
 
-            # Ensure members are in team
             for member in members:
               member = str(member).strip()
-              if not member:
-                continue
-              run([
-                "gh", "api", "--method", "PUT",
-                f"/orgs/{org}/teams/{slug}/memberships/{member}",
-                "-f", "role=member"
-              ])
+              if member:
+                run(["gh", "api", "--method", "PUT",
+                  f"/orgs/{org}/teams/{slug}/memberships/{member}",
+                  "-f", "role=member"])
 
-            # Grant admin to team repositories
             for repo in repos:
               repo = str(repo).strip()
-              if not repo:
-                continue
-              run([
-                "gh", "api", "--method", "PUT",
-                f"/orgs/{org}/teams/{slug}/repos/{org}/{repo}",
-                "-f", "permission=admin"
-              ])
+              if repo:
+                run(["gh", "api", "--method", "PUT",
+                  f"/orgs/{org}/teams/{slug}/repos/{org}/{repo}",
+                  "-f", "permission=admin"])
 
             normalized.append({
-              "name": name,
-              "slug": slug,
+              "name": name, "slug": slug,
               "members": [str(m).strip() for m in members if str(m).strip()],
               "repositories": [str(r).strip() for r in repos if str(r).strip()],
             })
 
-          # Update README Team Registry block
           start = "<!-- TEAM_REGISTRY_START -->"
           end = "<!-- TEAM_REGISTRY_END -->"
           readme = readme_path.read_text(encoding="utf-8")
           if start not in readme or end not in readme:
-            raise SystemExit("README markers TEAM_REGISTRY_START/END are missing")
+            raise SystemExit("Team registry markers missing in profile/README.md")
 
-          lines = [
-            start,
-            "| Team | Members | Repositories (Admin) |",
-            "|------|---------|----------------------|",
-          ]
+          lines = [start, "| Team | Members | Repositories (Admin) |",
+            "|------|---------|----------------------|"]
           if normalized:
             for t in normalized:
               members = ", ".join(f"`{m}`" for m in t["members"]) if t["members"] else "-"
@@ -162,21 +144,20 @@ jobs:
 
           readme = re.sub(
             rf"{re.escape(start)}.*?{re.escape(end)}",
-            replacement,
-            readme,
-            flags=re.S,
+            replacement, readme, flags=re.S,
           )
           readme_path.write_text(readme, encoding="utf-8")
           PY
 
-      - name: Commit README changes
+      - name: Commit and push changes
         run: |
-          if git diff --quiet -- README.md; then
-            echo "No README changes to commit."
+          cd .github-private-repo
+          if git diff --quiet -- profile/README.md; then
+            echo "No README changes"
             exit 0
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add README.md
+          git add profile/README.md
           git commit -m "docs: update team registry [skip-release]"
           git push origin HEAD:main
