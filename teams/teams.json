@@ -1,11 +1,21 @@
 {
   "teams": [
     {
+      "client": "TALMA",
       "name": "TALMA",
+      "alias": "Associació Talma",
+      "tool": "PBI",
       "description": "Associació Talma",
       "privacy": "closed",
-      "members": ["mrebocho-actiumdigital", "fgonzalez-actiumdigital", "actiumbi-actiumdigital", "cpujol-actiumdigital"],
-      "repositories": ["talma-bi-demo-ventas"]
+      "members": [
+        "mrebocho-actiumdigital",
+        "fgonzalez-actiumdigital",
+        "actiumbi-actiumdigital",
+        "cpujol-actiumdigital"
+      ],
+      "repositories": [
+        "talma-bi-demo-ventas"
+      ]
     }
   ]
 }

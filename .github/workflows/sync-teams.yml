@@ -58,6 +58,8 @@ jobs:
 
           data = json.loads(cfg_path.read_text(encoding="utf-8"))
           teams = data.get("teams", [])
+          if not isinstance(teams, list):
+            raise SystemExit("teams must be a list")
 
           def run(args):
             result = subprocess.run(args, check=True, capture_output=True, text=True)
@@ -96,15 +98,24 @@ jobs:
             if not name:
               raise SystemExit("Each team requires a non-empty name")
 
+            client = (t.get("client") or name).strip()
             description = (t.get("description") or "").strip()
+            alias = (t.get("alias") or description or "").strip()
+            tool = (t.get("tool") or "").strip()
             privacy = (t.get("privacy") or "closed").strip()
             members = t.get("members") or []
             repos = t.get("repositories") or []
 
             if privacy not in ("closed", "secret"):
               raise SystemExit(f"Invalid privacy for team {name}")
+            if tool and tool not in ("PBI", "Qlik Sense"):
+              raise SystemExit(f"Invalid tool for team {name}: {tool}. Allowed: PBI, Qlik Sense")
+            if not isinstance(members, list) or not isinstance(repos, list):
+              raise SystemExit(f"members and repositories must be arrays for team {name}")
 
             slug = slugify(name)
+            if not slug:
+              raise SystemExit(f"Could not derive slug from team name: {name}")
 
             exists = subprocess.run(
               ["gh", "api", f"/orgs/{org}/teams/{slug}"],
@@ -147,9 +158,11 @@ jobs:
               print(f"Granted {slug} admin access to {repo}")
 
             normalized.append({
-              "name": name, "slug": slug,
-              "members": [str(m).strip() for m in members if str(m).strip()],
-              "repositories": [str(r).strip() for r in repos if str(r).strip()],
+              "client": client,
+              "name": name,
+              "slug": slug,
+              "alias": alias,
+              "tool": tool,
             })
 
           start = "<!-- TEAM_REGISTRY_START -->"
@@ -158,24 +171,32 @@ jobs:
           if start not in readme or end not in readme:
             raise SystemExit("Team registry markers missing in profile/README.md")
 
-          lines = [start, "| Team | Members | Repositories (Admin) |",
-            "|------|---------|----------------------|"]
+          lines = [
+            start,
+            "| Client | Team | Alias | Tool |",
+            "| --- | --- | --- | --- |"
+          ]
+
           if normalized:
             for t in normalized:
-              members = ", ".join(f"`{m}`" for m in t["members"]) if t["members"] else "-"
-              repos = ", ".join(f"[`{r}`](../../{r})" for r in t["repositories"]) if t["repositories"] else "-"
-              lines.append(f"| {t['name']} (`{t['slug']}`) | {members} | {repos} |")
+              team_link = f"**[{t['slug']}](https://github.com/orgs/{org}/teams/{t['slug']})**"
+              alias = t["alias"] or ""
+              tool = t["tool"] or ""
+              lines.append(f"| {t['client']} | {team_link} | {alias} | {tool} |")
           else:
-            lines.append("| _No teams registered_ | - | - |")
+            lines.append("| _No teams registered_ |  |  |  |")
+
           lines.append(end)
           replacement = "\n".join(lines)
 
           readme = re.sub(
             rf"{re.escape(start)}.*?{re.escape(end)}",
-            replacement, readme, flags=re.S,
+            replacement,
+            readme,
+            flags=re.S,
           )
           readme_path.write_text(readme, encoding="utf-8")
-          print("Updated team registry in profile/README.md")
+          print("Updated client mapping table in profile/README.md")
           PYTHON
 
       - name: Commit and push changes
@@ -188,5 +209,5 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add profile/README.md
-          git commit -m "docs: update team registry [skip-release]"
+          git commit -m "docs: update client mapping from teams config [skip-release]"
           git push origin HEAD:main
