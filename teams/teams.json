@@ -203,7 +203,9 @@
       ],
       "repositories": [
         "roller-bi-control-stock",
-        "roller-bi-dataflow"
+        "roller-bi-dataflow",
+        "roller-bi-analitica-finanzas",
+        "roller-bi-ventas-roller"
       ]
     }
   ]
