@@ -1,0 +1,86 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+      - master
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    if: "!contains(github.event.head_commit.message, '[skip-release]')"
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Determine version bump
+        id: version
+        run: |
+          # Get the last tag
+          LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
+          echo "last_tag=$LAST_TAG" >> $GITHUB_OUTPUT
+          
+          # Parse current version
+          VERSION=${LAST_TAG#v}
+          MAJOR=$(echo $VERSION | cut -d. -f1)
+          MINOR=$(echo $VERSION | cut -d. -f2)
+          PATCH=$(echo $VERSION | cut -d. -f3)
+          
+          # Check commit messages since last tag
+          if git log $LAST_TAG..HEAD --pretty=format:"%B" | grep -q "^BREAKING CHANGE"; then
+            MAJOR=$((MAJOR + 1))
+            MINOR=0
+            PATCH=0
+          elif git log $LAST_TAG..HEAD --pretty=format:"%b%s" | grep -q "^feat"; then
+            MINOR=$((MINOR + 1))
+            PATCH=0
+          else
+            PATCH=$((PATCH + 1))
+          fi
+          
+          NEW_VERSION="$MAJOR.$MINOR.$PATCH"
+          echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
+          echo "new_tag=v$NEW_VERSION" >> $GITHUB_OUTPUT
+
+      - name: Create Git tag
+        env:
+          NEW_TAG: ${{ steps.version.outputs.new_tag }}
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          git tag -a $NEW_TAG -m "Release $NEW_TAG"
+          git push origin $NEW_TAG
+
+      - name: Create Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NEW_TAG: ${{ steps.version.outputs.new_tag }}
+          LAST_TAG: ${{ steps.version.outputs.last_tag }}
+        run: |
+          # Generate release notes
+          RELEASE_NOTES=$(git log $LAST_TAG..HEAD --pretty=format:"- %s (%h)" || echo "Initial release")
+          
+          gh release create $NEW_TAG \
+            --title "Release $NEW_TAG" \
+            --notes "$RELEASE_NOTES" \
+            --generate-notes
+
+      - name: Comment on related issues
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NEW_TAG: ${{ steps.version.outputs.new_tag }}
+        run: |
+          # Find all issue numbers referenced in commits
+          ISSUES=$(git log ${{ steps.version.outputs.last_tag }}..HEAD --pretty=format:"%b%s" | grep -oE "#[0-9]+" | sort -u | tr '\n' ' ')
+          
+          for ISSUE in $ISSUES; do
+            gh issue comment $ISSUE --body "✅ Resolved in release $NEW_TAG"
+          done

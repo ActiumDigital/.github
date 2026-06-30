@@ -1,0 +1,79 @@
+name: Update CHANGELOG
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  update-changelog:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Update CHANGELOG.md
+        id: changelog
+        run: |
+          TAG=${{ github.ref_name }}
+          VERSION=${TAG#v}
+          DATE=$(date +%Y-%m-%d)
+          PREVIOUS_TAG=$(git describe --tags --abbrev=0 $TAG^ 2>/dev/null || echo "")
+          
+          # Generate changelog entries
+          if [ -z "$PREVIOUS_TAG" ]; then
+            CHANGES=$(git log --pretty=format:"- %s ([%h](../../commit/%H))" | head -20)
+          else
+            CHANGES=$(git log $PREVIOUS_TAG..$TAG --pretty=format:"- %s ([%h](../../commit/%H))")
+          fi
+          
+          # Create new changelog entry
+          TEMP_CHANGELOG=$(mktemp)
+          
+          # Add header
+          {
+            echo "# Changelog"
+            echo ""
+            echo "All notable changes to this project will be documented in this file."
+            echo ""
+            echo "The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),"
+            echo "and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)."
+            echo ""
+            echo "## [Unreleased]"
+            echo ""
+            echo "### Added"
+            echo "### Changed"
+            echo "### Deprecated"
+            echo "### Removed"
+            echo "### Fixed"
+            echo "### Security"
+            echo ""
+            echo "## [$VERSION] - $DATE"
+            echo ""
+            echo "### Changes"
+            echo "$CHANGES"
+            echo ""
+            
+            # Append existing changelog if it exists
+            if [ -f CHANGELOG.md ]; then
+              tail -n +5 CHANGELOG.md 2>/dev/null || true
+            fi
+          } > $TEMP_CHANGELOG
+          
+          mv $TEMP_CHANGELOG CHANGELOG.md
+
+      - name: Commit CHANGELOG
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          git add CHANGELOG.md
+          git commit -m "docs: Update CHANGELOG for ${{ github.ref_name }}" || true
+          git push origin $(git rev-parse --abbrev-ref HEAD)
+        continue-on-error: true
