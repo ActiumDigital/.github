@@ -1,6 +1,146 @@
 {
   "teams": [
     {
+      "client": "* DEMOS *",
+      "name": "demos",
+      "alias": "Actium Digital",
+      "tool": "PBI",
+      "description": "Demos (Plantillas) en Power BI",
+      "privacy": "closed",
+      "members": [
+        "mrebocho-actiumdigital",
+        "fgonzalez-actiumdigital",
+        "actiumbi-actiumdigital",
+        "cpujol-actiumdigital"
+      ]
+    },
+    {
+      "client": "ACTIUM",
+      "name": "ACTIUM",
+      "alias": "Actium Digital",
+      "tool": "PBI",
+      "description": "Actium Digital apps en Power BI",
+      "privacy": "closed",
+      "members": [
+        "mrebocho-actiumdigital",
+        "fgonzalez-actiumdigital",
+        "actiumbi-actiumdigital",
+        "cpujol-actiumdigital"
+      ]
+    },
+    {
+      "client": "ANETO",
+      "name": "ANETO",
+      "alias": "Aneto",
+      "tool": "PBI",
+      "description": "Aneto apps en Power BI",
+      "privacy": "closed",
+      "members": [
+        "mrebocho-actiumdigital",
+        "fgonzalez-actiumdigital",
+        "actiumbi-actiumdigital",
+        "cpujol-actiumdigital"
+      ]
+    },
+    {
+      "client": "ARNO",
+      "name": "ARNO",
+      "alias": "Arnó, Benito Arnó",
+      "tool": "PBI",
+      "description": "Benito Arnó apps en Power BI",
+      "privacy": "closed",
+      "members": [
+        "mrebocho-actiumdigital",
+        "fgonzalez-actiumdigital",
+        "actiumbi-actiumdigital",
+        "cpujol-actiumdigital"
+      ]
+    },
+    {
+      "client": "INTERMARK",
+      "name": "INTERMARK",
+      "alias": "Intermark",
+      "tool": "PBI",
+      "description": "Intermark apps en Power BI",
+      "privacy": "closed",
+      "members": [
+        "mrebocho-actiumdigital",
+        "fgonzalez-actiumdigital",
+        "actiumbi-actiumdigital",
+        "cpujol-actiumdigital"
+      ]
+    },
+    {
+      "client": "ISANTA",
+      "name": "ISANTA",
+      "alias": "Isanta, Farmacia Isanta, Farmàcies Isanta",
+      "tool": "PBI",
+      "description": "Farmàcia Isanta apps en Power BI",
+      "privacy": "closed",
+      "members": [
+        "mrebocho-actiumdigital",
+        "fgonzalez-actiumdigital",
+        "actiumbi-actiumdigital",
+        "cpujol-actiumdigital"
+      ]
+    },
+    {
+      "client": "LLEIDAM",
+      "name": "LLEIDAM",
+      "alias": "Lleidam",
+      "tool": "PBI",
+      "description": "Lleidam apps en Power BI",
+      "privacy": "closed",
+      "members": [
+        "mrebocho-actiumdigital",
+        "fgonzalez-actiumdigital",
+        "actiumbi-actiumdigital",
+        "cpujol-actiumdigital"
+      ]
+    },
+    {
+      "client": "PEUSA",
+      "name": "PEUSA",
+      "alias": "Fundació Peusa",
+      "tool": "PBI",
+      "description": "Peusa apps en Power BI",
+      "privacy": "closed",
+      "members": [
+        "mrebocho-actiumdigital",
+        "fgonzalez-actiumdigital",
+        "actiumbi-actiumdigital",
+        "cpujol-actiumdigital"
+      ]
+    },
+    {
+      "client": "SAS",
+      "name": "SAS",
+      "alias": "SAS",
+      "tool": "Qlik Sense",
+      "description": "SAS apps en Qlik Sense",
+      "privacy": "closed",
+      "members": [
+        "mrebocho-actiumdigital",
+        "fgonzalez-actiumdigital",
+        "actiumbi-actiumdigital",
+        "cpujol-actiumdigital"
+      ]
+    },
+    {
+      "client": "STARGOURMET",
+      "name": "STARGOURMET",
+      "alias": "STARGOURMET",
+      "tool": "Qlik Sense",
+      "description": "Star Gourmet apps en Qlik Sense",
+      "privacy": "closed",
+      "members": [
+        "mrebocho-actiumdigital",
+        "fgonzalez-actiumdigital",
+        "actiumbi-actiumdigital",
+        "cpujol-actiumdigital"
+      ]
+    },
+    {
       "client": "TALMA",
       "name": "TALMA",
       "alias": "Associació Talma, TALMA",
@@ -15,6 +155,20 @@
       ],
       "repositories": [
         "talma-bi-demo-ventas"
+      ]
+    },
+    {
+      "client": "TEXTIL",
+      "name": "TEXTIL",
+      "alias": "TEXTIL",
+      "tool": "PBI",
+      "description": "Textil Elástico apps en Power BI",
+      "privacy": "closed",
+      "members": [
+        "mrebocho-actiumdigital",
+        "fgonzalez-actiumdigital",
+        "actiumbi-actiumdigital",
+        "cpujol-actiumdigital"
       ]
     }
   ]
