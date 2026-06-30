@@ -26,4 +26,6 @@ This section is automatically maintained from [`teams/teams.json`](https://githu
 | STARGOURMET | **[stargourmet](https://github.com/orgs/ActiumDigital/teams/stargourmet)** | STARGOURMET | Qlik Sense |
 | TALMA | **[talma](https://github.com/orgs/ActiumDigital/teams/talma)** | Associació Talma, TALMA | PBI |
 | TEXTIL | **[textil](https://github.com/orgs/ActiumDigital/teams/textil)** | Textil elástico, MEDILAST, TEXTIL | PBI |
+| ELECTRODINAMIC | **[electrodinamic](https://github.com/orgs/ActiumDigital/teams/electrodinamic)** | Electrodinamic | PBI |
+| ROLLER | **[roller](https://github.com/orgs/ActiumDigital/teams/roller)** | Roller | PBI |
 <!-- TEAM_REGISTRY_END -->
