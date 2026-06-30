@@ -41,8 +41,9 @@ jobs:
           from pathlib import Path
 
           org = os.environ["ORG_NAME"]
-          cfg_path = Path("teams/teams.json")
-          readme_path = Path("README.md")
+          workspace = Path(os.environ.get("GITHUB_WORKSPACE", ".")).resolve()
+          cfg_path = workspace / "teams/teams.json"
+          readme_path = workspace / "README.md"
 
           if not cfg_path.exists():
             raise SystemExit("teams/teams.json not found")
