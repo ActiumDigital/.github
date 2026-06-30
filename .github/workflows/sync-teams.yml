@@ -1,4 +1,4 @@
-name: Sync Teams
+name: Sync Teams & Repositories
 
 on:
   push:
@@ -13,7 +13,7 @@ permissions:
   contents: write
 
 jobs:
-  sync-teams:
+  sync-teams-and-repos:
     runs-on: ubuntu-latest
 
     steps:
@@ -30,7 +30,7 @@ jobs:
           token: ${{ secrets.ORG_ADMIN_TOKEN }}
           path: .github-private-repo
 
-      - name: Sync teams and update README
+      - name: Sync teams, create repos, and update README
         env:
           GH_TOKEN: ${{ secrets.ORG_ADMIN_TOKEN }}
           ORG_NAME: ActiumDigital
@@ -40,7 +40,7 @@ jobs:
             exit 1
           fi
 
-          python - <<'PY'
+          python3 - <<'PYTHON'
           import json
           import os
           import re
@@ -70,6 +70,25 @@ jobs:
             slug = re.sub(r"-{2,}", "-", slug).strip("-")
             return slug
 
+          def repo_exists(repo: str) -> bool:
+            result = subprocess.run(
+              ["gh", "api", f"/repos/{org}/{repo}"],
+              capture_output=True, text=True
+            )
+            return result.returncode == 0
+
+          def create_repo(repo: str, description: str = "") -> None:
+            args = [
+              "gh", "api", "--method", "POST", f"/orgs/{org}/repos",
+              "-f", f"name={repo}",
+              "-f", "private=true",
+              "-f", "auto_init=true"
+            ]
+            if description:
+              args += ["-f", f"description={description}"]
+            run(args)
+            print(f"Created repository: {repo}")
+
           normalized = []
 
           for t in teams:
@@ -97,12 +116,14 @@ jobs:
               if description:
                 args += ["-f", f"description={description}"]
               run(args)
+              print(f"Created team: {name}")
             else:
               args = ["gh", "api", "--method", "PATCH", f"/orgs/{org}/teams/{slug}",
                 "-f", f"name={name}", "-f", f"privacy={privacy}"]
               if description:
                 args += ["-f", f"description={description}"]
               run(args)
+              print(f"Updated team: {name}")
 
             for member in members:
               member = str(member).strip()
@@ -110,13 +131,20 @@ jobs:
                 run(["gh", "api", "--method", "PUT",
                   f"/orgs/{org}/teams/{slug}/memberships/{member}",
                   "-f", "role=member"])
+                print(f"Added {member} to team {slug}")
 
             for repo in repos:
               repo = str(repo).strip()
-              if repo:
-                run(["gh", "api", "--method", "PUT",
-                  f"/orgs/{org}/teams/{slug}/repos/{org}/{repo}",
-                  "-f", "permission=admin"])
+              if not repo:
+                continue
+
+              if not repo_exists(repo):
+                create_repo(repo, f"Team: {name}")
+
+              run(["gh", "api", "--method", "PUT",
+                f"/orgs/{org}/teams/{slug}/repos/{org}/{repo}",
+                "-f", "permission=admin"])
+              print(f"Granted {slug} admin access to {repo}")
 
             normalized.append({
               "name": name, "slug": slug,
@@ -135,7 +163,7 @@ jobs:
           if normalized:
             for t in normalized:
               members = ", ".join(f"`{m}`" for m in t["members"]) if t["members"] else "-"
-              repos = ", ".join(f"`{r}`" for r in t["repositories"]) if t["repositories"] else "-"
+              repos = ", ".join(f"[`{r}`](../../{r})" for r in t["repositories"]) if t["repositories"] else "-"
               lines.append(f"| {t['name']} (`{t['slug']}`) | {members} | {repos} |")
           else:
             lines.append("| _No teams registered_ | - | - |")
@@ -147,7 +175,8 @@ jobs:
             replacement, readme, flags=re.S,
           )
           readme_path.write_text(readme, encoding="utf-8")
-          PY
+          print("Updated team registry in profile/README.md")
+          PYTHON
 
       - name: Commit and push changes
         run: |
