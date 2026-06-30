@@ -7,6 +7,7 @@ on:
     paths:
       - 'teams/teams.json'
       - '.github/workflows/sync-teams.yml'
+      - 'profile/README.md'
   workflow_dispatch:
 
 permissions:
@@ -22,13 +23,6 @@ jobs:
         with:
           fetch-depth: 0
           path: .github-repo
-
-      - name: Checkout .github-private repo
-        uses: actions/checkout@v4
-        with:
-          repository: ActiumDigital/.github-private
-          token: ${{ secrets.ORG_ADMIN_TOKEN }}
-          path: .github-private-repo
 
       - name: Sync teams, create repos, and update README
         env:
@@ -49,12 +43,12 @@ jobs:
 
           org = os.environ["ORG_NAME"]
           cfg_path = Path(".github-repo/teams/teams.json")
-          readme_path = Path(".github-private-repo/profile/README.md")
+          readme_path = Path(".github-repo/profile/README.md")
 
           if not cfg_path.exists():
             raise SystemExit("teams/teams.json not found")
           if not readme_path.exists():
-            raise SystemExit("profile/README.md not found in .github-private")
+            raise SystemExit("profile/README.md not found in .github")
 
           data = json.loads(cfg_path.read_text(encoding="utf-8"))
           teams = data.get("teams", [])
@@ -142,7 +136,6 @@ jobs:
                 run(["gh", "api", "--method", "PUT",
                   f"/orgs/{org}/teams/{slug}/memberships/{member}",
                   "-f", "role=member"])
-                print(f"Added {member} to team {slug}")
 
             for repo in repos:
               repo = str(repo).strip()
@@ -155,11 +148,9 @@ jobs:
               run(["gh", "api", "--method", "PUT",
                 f"/orgs/{org}/teams/{slug}/repos/{org}/{repo}",
                 "-f", "permission=admin"])
-              print(f"Granted {slug} admin access to {repo}")
 
             normalized.append({
               "client": client,
-              "name": name,
               "slug": slug,
               "alias": alias,
               "tool": tool,
@@ -201,7 +192,7 @@ jobs:
 
       - name: Commit and push changes
         run: |
-          cd .github-private-repo
+          cd .github-repo
           if git diff --quiet -- profile/README.md; then
             echo "No README changes"
             exit 0
