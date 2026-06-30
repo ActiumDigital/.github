@@ -200,6 +200,10 @@
         "fgonzalez-actiumdigital",
         "actiumbi-actiumdigital",
         "cpujol-actiumdigital"
+      ],
+      "repositories": [
+        "roller-bi-control-stock",
+        "roller-bi-dataflow"
       ]
     }
   ]
