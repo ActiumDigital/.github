@@ -6,6 +6,10 @@ labels: documentation
 assignees: ''
 ---
 
+## Redmine Reference
+Add the related Redmine issue ID or URL (if applicable).
+- **Redmine**: [e.g., #12345 or https://redmine.actiumdigital.com/issues/12345]
+
 ## What Documentation Needs to be Updated?
 A clear description of which documentation needs attention (e.g., README, API docs, guides, tutorials).
 

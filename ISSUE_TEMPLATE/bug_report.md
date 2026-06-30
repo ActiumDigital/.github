@@ -6,6 +6,10 @@ labels: bug
 assignees: ''
 ---
 
+## Redmine Reference
+Add the related Redmine issue ID or URL (if applicable).
+- **Redmine**: [e.g., #12345 or https://redmine.actiumdigital.com/issues/12345]
+
 ## Describe the Bug
 A clear and concise description of what the bug is.
 

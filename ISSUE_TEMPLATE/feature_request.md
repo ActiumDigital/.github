@@ -6,6 +6,10 @@ labels: enhancement
 assignees: ''
 ---
 
+## Redmine Reference
+Add the related Redmine issue ID or URL (if applicable).
+- **Redmine**: [e.g., #12345 or https://redmine.actiumdigital.com/issues/12345]
+
 ## Is Your Feature Request Related to a Problem?
 A clear and concise description of what the problem is. E.g. I'm always frustrated when [...]
 
