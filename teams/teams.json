@@ -1,3 +1,11 @@
 {
-  "teams": []
+  "teams": [
+    {
+      "name": "TALMA",
+      "description": "Associació Talma",
+      "privacy": "closed",
+      "members": ["mrebocho-actiumdigital", "fgonzalez-actiumdigital", "actiumbi-actiumdigital", "cpujol-actiumdigital"],
+      "repositories": ["talma-bi-demo-ventas"]
+    }
+  ]
 }
