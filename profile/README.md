@@ -25,5 +25,5 @@ This section is automatically maintained from [`teams/teams.json`](https://githu
 | SAS | **[sas](https://github.com/orgs/ActiumDigital/teams/sas)** | SAS | Qlik Sense |
 | STARGOURMET | **[stargourmet](https://github.com/orgs/ActiumDigital/teams/stargourmet)** | STARGOURMET | Qlik Sense |
 | TALMA | **[talma](https://github.com/orgs/ActiumDigital/teams/talma)** | Associació Talma, TALMA | PBI |
-| TEXTIL | **[textil](https://github.com/orgs/ActiumDigital/teams/textil)** | TEXTIL | PBI |
+| TEXTIL | **[textil](https://github.com/orgs/ActiumDigital/teams/textil)** | Textil elástico, MEDILAST, TEXTIL | PBI |
 <!-- TEAM_REGISTRY_END -->
